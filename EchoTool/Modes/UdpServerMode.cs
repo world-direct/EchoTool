@@ -72,7 +72,7 @@ namespace EchoTool.Modes
             Console.WriteLine(Messages.UDPServerCaption, _serverPort);
 
             echoServer.Start();
-            Console.ReadKey(true);
+            Console.Read();
             echoServer.Stop();
         }
 
