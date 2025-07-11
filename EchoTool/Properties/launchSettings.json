@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EchoTool": {
+      "commandName": "Project",
+      "commandLineArgs": "/s 12541 /p tcp"
+    }
+  }
+}
