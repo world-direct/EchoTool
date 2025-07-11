@@ -28,6 +28,7 @@ namespace EchoTool.Protocols
         bool _serverRunning;
         TcpListener _tcpListener;
         TcpClient _tcpClient;
+        CancellationTokenSource _cts;
         #endregion
 
         #region Constructor
@@ -58,8 +59,9 @@ namespace EchoTool.Protocols
         {
             if (_mainThread == null)
             {
+                _cts = new CancellationTokenSource();
                 _tcpListener = new TcpListener(IPAddress.Any, ListenPort);              
-                _mainThread = new Thread(ServerThread);
+                _mainThread = new Thread(() => ServerThread(_cts.Token));
                 _serverRunning = true;
                 _mainThread.Start();
             }
@@ -75,8 +77,8 @@ namespace EchoTool.Protocols
             if (_serverRunning)
             {
                 _serverRunning = false;
-                _tcpListener.Stop();
-                _mainThread.Abort();
+                _cts.Cancel();                
+                _tcpListener.Stop();                           
                 _mainThread = null;
                 _tcpClient = null;
             }
@@ -87,7 +89,7 @@ namespace EchoTool.Protocols
         /// <summary>
         /// Main thread method
         /// </summary>
-        private void ServerThread()
+        private void ServerThread(CancellationToken token)
         {
             try
             {
@@ -95,8 +97,8 @@ namespace EchoTool.Protocols
                 _tcpListener.Start();
 
                 // Main loop
-                while (_serverRunning)
-                {                    
+                while (_serverRunning || !token.IsCancellationRequested)
+                {                               
                     _tcpClient = _tcpListener.AcceptTcpClient();
 
                     // Raise event when client is connected

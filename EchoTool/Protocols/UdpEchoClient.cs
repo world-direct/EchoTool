@@ -27,6 +27,7 @@ namespace EchoTool.Protocols
         Thread _mainThread;
         bool _clientRunning;
         UdpClient _udpClient;
+        CancellationTokenSource _cts;
         #endregion
 
         #region Constructors
@@ -60,7 +61,8 @@ namespace EchoTool.Protocols
         {
             if (_mainThread == null)
             {
-                _mainThread = new Thread(ClientThread);
+                _cts = new CancellationTokenSource();
+                _mainThread = new Thread(() => ClientThread(_cts.Token));
                 _clientRunning = true;
                 _mainThread.Start();
             }
@@ -81,7 +83,7 @@ namespace EchoTool.Protocols
         /// <summary>
         /// Main thread method
         /// </summary>
-        private void ClientThread()
+        private void ClientThread(CancellationToken token)
         {                        
             IPEndPoint responseEndPoint = null;
             IPEndPoint serverEndPoint;
@@ -91,7 +93,7 @@ namespace EchoTool.Protocols
             _clientRunning = GetHostnameEndPoint(out serverEndPoint);
 
             #region Main loop
-            while (_clientRunning && loopCount >= 0)
+            while ((_clientRunning && loopCount >= 0) || !token.IsCancellationRequested)
             {
                 try
                 { 
@@ -147,7 +149,7 @@ namespace EchoTool.Protocols
             {
                 abort = true;
                 _clientRunning = false;
-                _mainThread.Abort();                
+                _cts.Cancel();
             }
             
             _mainThread = null;

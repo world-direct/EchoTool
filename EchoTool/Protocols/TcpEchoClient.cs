@@ -29,6 +29,7 @@ namespace EchoTool.Protocols
         Thread _mainThread;
         bool _clientRunning;
         TcpClient _tcpClient;
+        CancellationTokenSource _cts;
         #endregion
 
         #region Constructors
@@ -61,7 +62,8 @@ namespace EchoTool.Protocols
         {
             if (_mainThread == null)
             {
-                _mainThread = new Thread(ClientThread);
+                _cts = new CancellationTokenSource();
+                _mainThread = new Thread(() => ClientThread(_cts.Token));
                 _clientRunning = true;
                 _mainThread.Start();
             }
@@ -82,7 +84,7 @@ namespace EchoTool.Protocols
         /// <summary>
         /// Main thread method
         /// </summary>
-        private void ClientThread()
+        private void ClientThread(CancellationToken token)
         {
             IPEndPoint serverEndPoint;
             var receiveBuffer = new byte[4096];
@@ -108,7 +110,7 @@ namespace EchoTool.Protocols
                     };
 
                     #region Main Loop
-                    while (_clientRunning && loopCount >= 0)
+                    while ((_clientRunning && loopCount >= 0) || !token.IsCancellationRequested)
                     {
                         // Send data
                         networkStream.Write(EchoPattern, 0, EchoPattern.Length);
@@ -173,7 +175,7 @@ namespace EchoTool.Protocols
             {
                 abort = true;
                 _clientRunning = false;
-                _mainThread.Abort();
+                _cts.Cancel();
             }
 
             _mainThread = null;
