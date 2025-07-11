@@ -1,8 +1,20 @@
 {
   "profiles": {
-    "EchoTool": {
+    "EchoTool UDP Server": {
       "commandName": "Project",
-      "commandLineArgs": "/s 12541 /p tcp"
+      "commandLineArgs": "/p udp /s 4578"
+    },
+    "EchoTool UDP Client": {
+      "commandName": "Project",
+      "commandLineArgs": "127.0.0.1 /p udp /r 4578 /d 01234"
+    },
+    "EchoTool TCP Server": {
+      "commandName": "Project",
+      "commandLineArgs": "/p tcp /s 4578"
+    },    
+    "EchoTool TCP Client": {
+      "commandName": "Project",
+      "commandLineArgs": "127.0.0.1 /p tcp /r 4578 /d 01234"
     }
   }
 }
